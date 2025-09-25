@@ -112,6 +112,7 @@ export default function App() {
         return;
       }
       window.gapi.client.setToken({ access_token: resp.access_token });
+      console.log("Token recibido:", window.gapi.client.getToken()); // <-- Aquí
       setSigned(true);
       fetchTaskLists();
       fetchUserInfo();
@@ -121,7 +122,8 @@ export default function App() {
     if (!currentToken) {
       tokenClientRef.current.requestAccessToken({ prompt: "consent" });
     } else {
-      tokenClientRef.current.requestAccessToken({ prompt: "" });
+      console.log(window.gapi.client.getToken());
+      tokenClientRef.current.requestAccessToken({ prompt: "consent" });
     }
   };
 
