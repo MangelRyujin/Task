@@ -256,19 +256,19 @@ export default function App() {
         <div className="text-center">
           <h1 className="text-3xl font-bold">📝 Task Manager</h1>
           <p className="">
-            Manage your tasks with Google Tasks and HeroUI
+            Manage your tasks with Google Tasks, React and HeroUI
           </p>
         </div>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Auth / Profile Card */}
           {!signed || !user ? (
             <div className="flex flex-col gap-4 items-center p-4">
-                <Chip size="lg" variant="dot" color={signed ? "success" : "warning"}>
+                <Chip size="lg" variant="dot" color={signed ? "success" : "danger"}>
                   {signed ? "Connected" : "Not connected"}
                 </Chip>
                 Init with
                 <Button
-                  color="secondary"
+                  color="primary"
                   variant="flat"
                   size="lg"
                   
