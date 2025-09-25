@@ -12,7 +12,7 @@ import ProfileCard from "@/components/profile/card";
 import DeleteTaskModal from "@/components/task/actions/delete/deleteTaskModal";
 import ConfirmCompleteModal from "@/components/task/actions/confirm/confirmCompleteModal";
 import { MdAddTask, MdDeleteForever } from "react-icons/md";
-import { FaGoogle} from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import { GrCompliance } from "react-icons/gr";
 import ChatbotDemo from "@/components/chatbot/ChatbotDemo";
 
@@ -149,30 +149,40 @@ export default function App() {
     }
   };
 
+  // --- Crear lista de tareas por defecto ---
+  const createDefaultTaskList = async () => {
+    try {
+      const res = await window.gapi.client.request({
+        path: `https://tasks.googleapis.com/tasks/v1/users/@me/lists`,
+        method: "POST",
+        body: { title: "My Tasks" },
+      });
+      const listId = res.result.id;
+      setSelectedList(listId);
+      fetchTasks(listId);
+    } catch (err) {
+      console.error("Error creating default task list", err);
+    }
+  };
+
   const fetchTaskLists = async () => {
     setLoading(true);
     try {
       const res = await window.gapi.client.tasks.tasklists.list({
         maxResults: 100,
       });
-      let lists = res.result.items || [];
-
-      // Si no hay listas, crear una por defecto
-      if (lists.length === 0) {
-        const defaultListRes = await window.gapi.client.tasks.tasklists.insert({
-          resource: { title: "My Tasks" }, // nombre por defecto
-        });
-        lists = [defaultListRes.result];
+      const lists = res.result.items || [];
+      if (lists.length) {
+        setSelectedList(lists[0].id);
+        fetchTasks(lists[0].id);
+      } else {
+        // Si no tiene ninguna lista, crear una por defecto
+        await createDefaultTaskList();
       }
-
-      // Seleccionar la primera lista y cargar sus tareas
-      setSelectedList(lists[0].id);
-      await fetchTasks(lists[0].id);
     } catch (err) {
-      console.error("fetchTaskLists error", err);
-    } finally {
-      setLoading(false);
+      console.error(err);
     }
+    setLoading(false);
   };
 
   const fetchTasks = async (tasklistId: string) => {
@@ -264,9 +274,7 @@ export default function App() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold">📝 Task Manager</h1>
-          <p className="">
-            Manage your tasks with Google Tasks, React and HeroUI
-          </p>
+          <p className="">Manage your tasks with Google Tasks, React and HeroUI</p>
         </div>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Auth / Profile Card */}
@@ -280,7 +288,6 @@ export default function App() {
                   color="primary"
                   variant="flat"
                   size="lg"
-                  
                   onPress={handleAuth}
                   isDisabled={!(gapiReady && gisReady)}
                   isLoading={loading}
@@ -295,6 +302,7 @@ export default function App() {
           {/* Tasks */}
           {signed && (
             <div className="flex flex-col gap-4">
+                {selectedList ? <Chip variant="flat" color="primary">Your Task List</Chip> : <Chip variant="flat" color="danger">You dont contain one list</Chip>}
                 <div className="flex gap-2 items-center">
                   <Input
                     variant="underlined"
@@ -317,7 +325,7 @@ export default function App() {
                     isLoading={loading}
                     isIconOnly
                   >
-                  <MdAddTask  size={20}/>
+                    <MdAddTask size={20}/>
                   </Button>
                 </div>
 
@@ -331,20 +339,19 @@ export default function App() {
                   tasks.map((task) => (
                     <div key={task.id}>
                       <Alert
-                      color={task.status === "completed" ? "success" : "primary"}
-                      className="flex justify-between items-center border-b py-2"
-                      title={task.title}
-                    >
-                      
-                      <div className="w-full flex gap-2 justify-end">
-                        <Button color="primary" isIconOnly size="sm" variant="flat" onPress={() => setTaskToComplete(task)}>
-                          <GrCompliance size={20} />
-                        </Button>
-                        <Button color="danger" isIconOnly size="sm" variant="flat" onPress={() => setTaskToDelete(task)}>
-                          <MdDeleteForever size={20} />
-                        </Button>
-                      </div>
-                    </Alert>
+                        color={task.status === "completed" ? "success" : "primary"}
+                        className="flex justify-between items-center border-b py-2"
+                        title={task.title}
+                      >
+                        <div className="w-full flex gap-2 justify-end">
+                          <Button color="primary" isIconOnly size="sm" variant="flat" onPress={() => setTaskToComplete(task)}>
+                            <GrCompliance size={20} />
+                          </Button>
+                          <Button color="danger" isIconOnly size="sm" variant="flat" onPress={() => setTaskToDelete(task)}>
+                            <MdDeleteForever size={20} />
+                          </Button>
+                        </div>
+                      </Alert>
                     </div>
                   ))
                 )}
