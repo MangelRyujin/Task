@@ -155,15 +155,24 @@ export default function App() {
       const res = await window.gapi.client.tasks.tasklists.list({
         maxResults: 100,
       });
-      const lists = res.result.items || [];
-      if (lists.length) {
-        setSelectedList(lists[0].id);
-        fetchTasks(lists[0].id);
+      let lists = res.result.items || [];
+
+      // Si no hay listas, crear una por defecto
+      if (lists.length === 0) {
+        const defaultListRes = await window.gapi.client.tasks.tasklists.insert({
+          resource: { title: "My Tasks" }, // nombre por defecto
+        });
+        lists = [defaultListRes.result];
       }
+
+      // Seleccionar la primera lista y cargar sus tareas
+      setSelectedList(lists[0].id);
+      await fetchTasks(lists[0].id);
     } catch (err) {
-      console.error(err);
+      console.error("fetchTaskLists error", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchTasks = async (tasklistId: string) => {
