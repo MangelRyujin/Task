@@ -255,6 +255,7 @@ export default function App() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold">📝 Task Manager</h1>
+          
           <p className="">
             Manage your tasks with Google Tasks, React and HeroUI
           </p>
@@ -271,7 +272,6 @@ export default function App() {
                   color="primary"
                   variant="flat"
                   size="lg"
-                  
                   onPress={handleAuth}
                   isDisabled={!(gapiReady && gisReady)}
                   isLoading={loading}
@@ -286,7 +286,7 @@ export default function App() {
           {/* Tasks */}
           {signed && (
             <div className="flex flex-col gap-4">
-                {selectedList ? <Chip variant="flat" color="primary">Your Task List</Chip> : <Chip variant="flat" color="primary">You dont contain one list</Chip>}
+                {selectedList ? <Chip variant="flat" color="primary">Your Task List</Chip> : <Chip variant="flat" color="danger" endContent={<Spinner  size="sm" color="danger"/>}>Creating or loading list</Chip>}
                 <div className="flex gap-2 items-center">
                   <Input
                     variant="underlined"
