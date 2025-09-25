@@ -13,7 +13,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   return (
-    <NextThemesProvider attribute="class" defaultTheme="light">
+    <NextThemesProvider>
       <HeroUIProvider 
         navigate={navigate} 
         useHref={useHref} 
