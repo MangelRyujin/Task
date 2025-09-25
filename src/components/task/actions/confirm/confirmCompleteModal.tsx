@@ -27,7 +27,7 @@ export default function ConfirmCompleteModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} backdrop="blur">
       <ModalContent>
-        <ModalHeader className="font-bold">
+        <ModalHeader className="font-bold text-success">
           {isCompleted ? "Mark as pending" : "Complete task"}
         </ModalHeader>
         <ModalBody>

@@ -263,7 +263,7 @@ export default function App() {
           {/* Auth / Profile Card */}
           {!signed || !user ? (
             <div className="flex flex-col gap-4 items-center p-4">
-                <Chip size="lg" variant="dot" color={signed ? "success" : "danger"}>
+                <Chip size="lg" variant="flat" color={signed ? "success" : "danger"}>
                   {signed ? "Connected" : "Not connected"}
                 </Chip>
                 Init with
@@ -286,7 +286,6 @@ export default function App() {
           {/* Tasks */}
           {signed && (
             <div className="flex flex-col gap-4">
-              
                 <div className="flex gap-2 items-center">
                   <Input
                     variant="underlined"
