@@ -105,26 +105,28 @@ export default function App() {
     if (!tokenClientRef.current) return;
     setLoading(true);
 
-    const currentToken = window.gapi.client.getToken();
+    // Limpiar token anterior para forzar nuevos scopes
+    window.gapi.client.setToken(null);
+
     tokenClientRef.current.callback = (resp: any) => {
       if (resp.error) {
         setLoading(false);
+        console.error("Error obtaining token:", resp.error);
+        alert("Error obtaining token. Check console for details.");
         return;
       }
       window.gapi.client.setToken({ access_token: resp.access_token });
-      console.log("Token recibido:", window.gapi.client.getToken()); // <-- Aquí
+      console.log("Token recibido:", window.gapi.client.getToken());
       setSigned(true);
       fetchTaskLists();
       fetchUserInfo();
       setLoading(false);
     };
 
-    if (!currentToken) {
-      tokenClientRef.current.requestAccessToken({ prompt: "consent" });
-    } else {
-      console.log(window.gapi.client.getToken());
-      tokenClientRef.current.requestAccessToken({ prompt: "consent" });
-    }
+    tokenClientRef.current.requestAccessToken({
+      prompt: "consent",
+      include_granted_scopes: false, // fuerza todos los scopes nuevamente
+    });
   };
 
   const fetchUserInfo = async () => {
@@ -143,7 +145,7 @@ export default function App() {
     const token = window.gapi.client.getToken();
     if (token && token.access_token) {
       window.google.accounts.oauth2.revoke(token.access_token);
-      window.gapi.client.setToken("");
+      window.gapi.client.setToken(null);
       setSigned(false);
       setTasks([]);
       setSelectedList(null);
@@ -162,8 +164,15 @@ export default function App() {
       const listId = res.result.id;
       setSelectedList(listId);
       fetchTasks(listId);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating default task list", err);
+      if (err?.result?.error?.status === "PERMISSION_DENIED") {
+        alert(
+          "Insufficient permissions to create a task list. Please sign in again and grant full access."
+        );
+      } else {
+        alert(err?.message || "Error creating default list");
+      }
     }
   };
 
@@ -178,11 +187,11 @@ export default function App() {
         setSelectedList(lists[0].id);
         fetchTasks(lists[0].id);
       } else {
-        // Si no tiene ninguna lista, crear una por defecto
         await createDefaultTaskList();
       }
     } catch (err) {
       console.error(err);
+      alert("Error fetching task lists. Check console for details.");
     }
     setLoading(false);
   };
@@ -215,6 +224,7 @@ export default function App() {
       fetchTasks(selectedList);
     } catch (err) {
       console.error("createTask error", err);
+      alert("Error creating task. Check console for details.");
     }
     setLoading(false);
   };
@@ -271,7 +281,7 @@ export default function App() {
   return (
     <>
       {user ? <ChatbotDemo createTaskFromBot={createTaskFromBot} /> : undefined}
-      
+
       <div className="p-6 flex flex-col gap-6">
         {/* Header */}
         <div className="text-center">
@@ -282,20 +292,20 @@ export default function App() {
           {/* Auth / Profile Card */}
           {!signed || !user ? (
             <div className="flex flex-col gap-4 items-center p-4">
-                <Chip size="lg" variant="flat" color={signed ? "success" : "danger"}>
-                  {signed ? "Connected" : "Not connected"}
-                </Chip>
-                Init with
-                <Button
-                  color="primary"
-                  variant="flat"
-                  size="lg"
-                  onPress={handleAuth}
-                  isDisabled={!(gapiReady && gisReady)}
-                  isLoading={loading}
-                >
-                  <span className="flex gap-2 items-center"><FaGoogle size={20}/> Google</span> 
-                </Button>
+              <Chip size="lg" variant="flat" color={signed ? "success" : "danger"}>
+                {signed ? "Connected" : "Not connected"}
+              </Chip>
+              Init with
+              <Button
+                color="primary"
+                variant="flat"
+                size="lg"
+                onPress={handleAuth}
+                isDisabled={!(gapiReady && gisReady)}
+                isLoading={loading}
+              >
+                <span className="flex gap-2 items-center"><FaGoogle size={20}/> Google</span> 
+              </Button>
             </div>
           ) : (
             <ProfileCard user={user} onSignout={handleSignout} />
@@ -304,60 +314,84 @@ export default function App() {
           {/* Tasks */}
           {signed && (
             <div className="flex flex-col gap-4">
-                {selectedList ? <Chip variant="flat" color="primary">Your Task List</Chip> : <Chip variant="flat" color="danger">You dont contain one list</Chip>}
-                <div className="flex gap-2 items-center">
-                  <Input
-                    variant="underlined"
-                    color="primary"
-                    label="Task name"
-                    placeholder="New task"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") createTask();
-                    }}
-                  />
+              {selectedList ? (
+                <Chip variant="flat" color="primary">Your Task List</Chip>
+              ) : (
+                <div className="flex flex-col gap-2 items-center">
+                  <Chip variant="flat" color="danger">You don't have any task list</Chip>
                   <Button
-                    color="success"
+                    color="primary"
                     variant="shadow"
-                    className="text-white"
-                    size="lg"
-                    onPress={createTask}
-                    isDisabled={!newTitle.trim()}
-                    isLoading={loading}
-                    isIconOnly
+                    onPress={async () => {
+                      try {
+                        await createDefaultTaskList();
+                      } catch (err: any) {
+                        console.error(err);
+                        alert(err?.message || "Error creating default list");
+                      }
+                    }}
                   >
-                    <MdAddTask size={20}/>
+                    Create Default List
                   </Button>
                 </div>
+              )}
 
-                {loading ? (
-                  <div className="flex justify-center">
-                    <Spinner />
+              {selectedList && (
+                <>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      variant="underlined"
+                      color="primary"
+                      label="Task name"
+                      placeholder="New task"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") createTask();
+                      }}
+                    />
+                    <Button
+                      color="success"
+                      variant="shadow"
+                      className="text-white"
+                      size="lg"
+                      onPress={createTask}
+                      isDisabled={!newTitle.trim()}
+                      isLoading={loading}
+                      isIconOnly
+                    >
+                      <MdAddTask size={20}/>
+                    </Button>
                   </div>
-                ) : tasks.length === 0 ? (
-                  <p className="text-center text-gray-500">No tasks yet</p>
-                ) : (
-                  tasks.map((task) => (
-                    <div key={task.id}>
-                      <Alert
-                        color={task.status === "completed" ? "success" : "primary"}
-                        className="flex justify-between items-center border-b py-2"
-                        title={task.title}
-                      >
-                        <div className="w-full flex gap-2 justify-end">
-                          <Button color="primary" isIconOnly size="sm" variant="flat" onPress={() => setTaskToComplete(task)}>
-                            <GrCompliance size={20} />
-                          </Button>
-                          <Button color="danger" isIconOnly size="sm" variant="flat" onPress={() => setTaskToDelete(task)}>
-                            <MdDeleteForever size={20} />
-                          </Button>
-                        </div>
-                      </Alert>
+
+                  {loading ? (
+                    <div className="flex justify-center">
+                      <Spinner />
                     </div>
-                  ))
-                )}
-            
+                  ) : tasks.length === 0 ? (
+                    <p className="text-center text-gray-500">No tasks yet</p>
+                  ) : (
+                    tasks.map((task) => (
+                      <div key={task.id}>
+                        <Alert
+                          color={task.status === "completed" ? "success" : "primary"}
+                          className="flex justify-between items-center border-b py-2"
+                          title={task.title}
+                        >
+                          <div className="w-full flex gap-2 justify-end">
+                            <Button color="primary" isIconOnly size="sm" variant="flat" onPress={() => setTaskToComplete(task)}>
+                              <GrCompliance size={20} />
+                            </Button>
+                            <Button color="danger" isIconOnly size="sm" variant="flat" onPress={() => setTaskToDelete(task)}>
+                              <MdDeleteForever size={20} />
+                            </Button>
+                          </div>
+                        </Alert>
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>
