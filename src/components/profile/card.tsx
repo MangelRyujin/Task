@@ -14,7 +14,7 @@ interface ProfileCardProps {
 
 export default function ProfileCard({ user, onSignout }: ProfileCardProps) {
   return (
-    <Card className="bg-slate-900/20">
+    <Card className="bg-slate-900/40 border border-slate-600">
       <CardBody className="flex flex-col items-center gap-4">
         <Avatar src={user.picture} size="lg" />
         <div className="text-center">
