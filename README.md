@@ -1,6 +1,6 @@
-# Vite & HeroUI Template
+# Vite & HeroUI Template with Express Server
 
-This is a template for creating applications using Vite and HeroUI (v2).
+This is a template for creating applications using **Vite**, **HeroUI (v2)**, and a **Node/Express backend**.
 
 [Try it on CodeSandbox](https://githubbox.com/heroui-inc/vite-template)
 
@@ -12,39 +12,52 @@ This is a template for creating applications using Vite and HeroUI (v2).
 - [Tailwind Variants](https://tailwind-variants.org)
 - [TypeScript](https://www.typescriptlang.org)
 - [Framer Motion](https://www.framer.com/motion)
+- [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/)
 
-## How to Use
+## Environment Variables
 
-To clone the project, run the following command:
+This project requires a few environment variables for Google API and Cloudflare AI integration. Create a `.env` or `.env.local` file in the root folder with the following structure:
 
-```bash
-git clone https://github.com/heroui-inc/vite-template.git
+```env
+# Google API
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GOOGLE_API_KEY=your_google_api_key
+
+# Cloudflare AI
+CLOUDFLARE_API_KEY=your_cloudflare_api_key
+CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 ```
 
-### Install dependencies
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+## How to Use
+### 1. Clone the project
 
-```bash
+You can use npm, yarn, pnpm, or bun. Example using npm:
+```
+bashgit clone https://github.com/heroui-inc/vite-template.git
+You can use npm, yarn, pnpm, or bun. Example using npm:
+```
+cd vite-template
+
+
+### 2. Install dependencies
+
+```
 npm install
 ```
 
-### Run the development server
-
-```bash
+### 3. Start the frontend (Vite)
+```
 npm run dev
 ```
 
-### Setup pnpm (optional)
+This will start the Vite development server at http://localhost:5173 (default port).
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
-
-```bash
-public-hoist-pattern[]=*@heroui/*
+### 4. Start the backend (Node/Express)
+In a separate terminal, run:
+```
+node server.js
 ```
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+This will start the Express server at http://localhost:3000.
 
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/vite-template/blob/main/LICENSE).

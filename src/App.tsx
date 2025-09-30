@@ -12,7 +12,7 @@ function App() {
     <div className="relative min-h-screen">
      
       {/* Fondo global fijo */}
-     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-primary/20 to-background will-change-transform" />
+     
       <div className="text-end pt-3 pe-3">
         <ThemeSwitch/>
       </div>

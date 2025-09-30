@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert, Button, Input, Spinner } from "@heroui/react";
-import { useState, useRef } from "react";
+import { Alert, Button, Input, ScrollShadow, Spinner } from "@heroui/react";
+import { useState, useRef, useEffect } from "react";
 import { BsFillSendFill } from "react-icons/bs";
-import { FaComments, FaTimes, FaMicrophone, FaMicrophoneSlash  } from "react-icons/fa";
+import { FaComments, FaTimes, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 
 interface ChatbotDemoProps {
   createTaskFromBot: (title: string) => Promise<void>;
@@ -20,19 +20,26 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
   const [languageChosen, setLanguageChosen] = useState(false);
 
   const recognitionRef = useRef<any>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // --- scroll automático cada vez que cambian los mensajes ---
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   // --- send message as task ---
   const handleSend = async (text: string) => {
     if (!text.trim()) return;
-    if (!languageChosen) return; // no enviar si aún no eligió idioma
+    if (!languageChosen) return;
 
     setMessages((prev) => [...prev, { from: "user", text }]);
     try {
       await createTaskFromBot(text.trim());
       setMessages((prev) => [
         ...prev,
-        { from: "bot", text: `✅ Task created: "${text}"` },
+        { from: "bot", text: `✅ Task created from: "${text}"` },
       ]);
     } catch (err) {
       setMessages((prev) => [
@@ -69,8 +76,6 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
 
     recognitionRef.current.start();
     setRecording(true);
-
-    timeoutRef.current = setTimeout(() => stopRecording(), 10000);
   };
 
   const stopRecording = () => {
@@ -78,10 +83,6 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
     if (recognitionRef.current) {
       recognitionRef.current.onend = null;
       recognitionRef.current.stop();
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
     }
   };
 
@@ -91,7 +92,13 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
     setLanguageChosen(true);
     setMessages((prev) => [
       ...prev,
-      { from: "bot", text: lang === "en-US" ? "✅ Language set to English. You can now type or speak to create a task." : "✅ Idioma cambiado a Español. Ahora puedes escribir o hablar para crear una tarea." },
+      {
+        from: "bot",
+        text:
+          lang === "en-US"
+            ? "✅ Language set to English. You can now type or speak to create a task."
+            : "✅ Idioma cambiado a Español. Ahora puedes escribir o hablar para crear una tarea.",
+      },
     ]);
   };
 
@@ -104,7 +111,7 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
         onClick={() => setOpen(!open)}
         isIconOnly
         size="lg"
-        className={`fixed bottom-5 right-5 rounded-full shadow-lg transition-all ${
+        className={`fixed bottom-5 right-5 z-50 rounded-full shadow-lg transition-all ${
           open ? "" : "animate-bounce"
         }`}
       >
@@ -118,7 +125,7 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
           <div className="bg-slate-950 text-primary p-3 font-semibold">Chatbot</div>
 
           {/* Messages */}
-          <div className="flex-1 p-3 overflow-y-auto text-sm space-y-2">
+          <ScrollShadow hideScrollBar className="flex-1 p-3 overflow-y-auto text-sm space-y-2">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -133,15 +140,31 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
                 />
               </div>
             ))}
-
-            {/* Language selection buttons */}
+            {/* 👇 Este div invisible hace el scroll automático */}
+            <div ref={messagesEndRef} />
             {!languageChosen && (
               <div className="flex justify-end gap-2 mt-2">
-                <Button color="primary" isIconOnly variant="flat" size="sm" onClick={() => chooseLanguage("en-US")}>EN</Button>
-                <Button color="primary" isIconOnly variant="flat" size="sm" onClick={() => chooseLanguage("es-PE")}>ES</Button>
+                <Button
+                  color="primary"
+                  isIconOnly
+                  variant="flat"
+                  size="sm"
+                  onClick={() => chooseLanguage("en-US")}
+                >
+                  EN
+                </Button>
+                <Button
+                  color="primary"
+                  isIconOnly
+                  variant="flat"
+                  size="sm"
+                  onClick={() => chooseLanguage("es-PE")}
+                >
+                  ES
+                </Button>
               </div>
             )}
-          </div>
+          </ScrollShadow >
 
           {/* Input */}
           {languageChosen && (
@@ -154,8 +177,13 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend(message)}
               />
-              <Button variant="flat" isIconOnly color="primary" onClick={() => handleSend(message)}>
-                <BsFillSendFill size={20}/>
+              <Button
+                variant="flat"
+                isIconOnly
+                color="primary"
+                onClick={() => handleSend(message)}
+              >
+                <BsFillSendFill size={20} />
               </Button>
               <Button
                 variant={recording ? "shadow" : "flat"}
@@ -164,10 +192,14 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
                 isIconOnly={!recording}
                 radius="full"
               >
-                {recording ? <><Spinner color="white" size="sm" variant="wave" /> <FaMicrophoneSlash size={20} /></>: <FaMicrophone size={20} /> }
-                
-                
-                
+                {recording ? (
+                  <>
+                    <Spinner color="white" size="sm" variant="wave" />{" "}
+                    <FaMicrophoneSlash size={20} />
+                  </>
+                ) : (
+                  <FaMicrophone size={20} />
+                )}
               </Button>
             </div>
           )}
