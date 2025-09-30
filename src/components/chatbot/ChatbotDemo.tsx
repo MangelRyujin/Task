@@ -3,18 +3,22 @@
 import { Alert, Button, Input, ScrollShadow, Spinner } from "@heroui/react";
 import { useState, useRef, useEffect } from "react";
 import { BsFillSendFill } from "react-icons/bs";
-import { FaComments, FaTimes, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import {
+  FaComments,
+  FaTimes,
+  FaMicrophone,
+  FaMicrophoneSlash,
+} from "react-icons/fa";
 
 interface ChatbotDemoProps {
   createTaskFromBot: (title: string, lang: string) => Promise<void>;
-
 }
 
 export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<{ from: "bot" | "user"; text: string }[]>([
-    { from: "bot", text: "Hi! 🎤 Choose your language:" },
-  ]);
+  const [messages, setMessages] = useState<
+    { from: "bot" | "user"; text: string }[]
+  >([{ from: "bot", text: "Hi! 🎤 Choose your language:" }]);
   const [message, setMessage] = useState("");
   const [recording, setRecording] = useState(false);
   const [selectedLang, setSelectedLang] = useState<"en-US" | "es-PE">("es-PE");
@@ -59,7 +63,8 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
     }
 
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
 
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.lang = selectedLang;
@@ -67,7 +72,12 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
     recognitionRef.current.interimResults = false;
 
     recognitionRef.current.onresult = (event: any) => {
+      // event.results is an array of all phrases detected during the recognition session
+      // event.results[event.results.length - 1] is the last phrase recognized by the microphone
+      // [0].transcript is the exact text that the browser detected from that phrase
       const transcript = event.results[event.results.length - 1][0].transcript;
+
+      // Send the recognized text to the backend or process it as a task
       handleSend(transcript);
     };
 
@@ -123,10 +133,15 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
       {open && (
         <div className="fixed z-50 bottom-20 right-5 w-80 h-96 bg-background backdrop-blur-sm shadow-xl rounded-2xl flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="bg-slate-950 text-primary p-3 font-semibold">Chatbot</div>
+          <div className="bg-slate-950 text-primary p-3 font-semibold">
+            Chatbot
+          </div>
 
           {/* Messages */}
-          <ScrollShadow hideScrollBar className="flex-1 p-3 overflow-y-auto text-sm space-y-2">
+          <ScrollShadow
+            hideScrollBar
+            className="flex-1 p-3 overflow-y-auto text-sm space-y-2"
+          >
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -165,7 +180,7 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
                 </Button>
               </div>
             )}
-          </ScrollShadow >
+          </ScrollShadow>
 
           {/* Input */}
           {languageChosen && (
