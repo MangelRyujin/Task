@@ -16,7 +16,7 @@ export default function ProfileCard({ user, onSignout }: ProfileCardProps) {
   return (
     <Card className="bg-transparent border-0 shadow-none  ">
       <CardBody className="flex flex-col items-center gap-4">
-        <Avatar src={user.picture} size="lg" />
+        <Avatar src={user.picture}  className="w-32 h-32" />
         <div className="text-center">
           <h3 className="text-lg font-bold">{user.name}</h3>
           <p className="">{user.email}</p>
