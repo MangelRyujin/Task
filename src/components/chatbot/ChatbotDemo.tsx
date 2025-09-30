@@ -6,7 +6,8 @@ import { BsFillSendFill } from "react-icons/bs";
 import { FaComments, FaTimes, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 
 interface ChatbotDemoProps {
-  createTaskFromBot: (title: string) => Promise<void>;
+  createTaskFromBot: (title: string, lang: string) => Promise<void>;
+
 }
 
 export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
@@ -16,13 +17,13 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
   ]);
   const [message, setMessage] = useState("");
   const [recording, setRecording] = useState(false);
-  const [selectedLang, setSelectedLang] = useState<"en-US" | "es-PE">("en-US");
+  const [selectedLang, setSelectedLang] = useState<"en-US" | "es-PE">("es-PE");
   const [languageChosen, setLanguageChosen] = useState(false);
 
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // --- scroll automático cada vez que cambian los mensajes ---
+  // --- automatic scroll bottom message---
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -36,7 +37,7 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
 
     setMessages((prev) => [...prev, { from: "user", text }]);
     try {
-      await createTaskFromBot(text.trim());
+      await createTaskFromBot(text.trim(), selectedLang);
       setMessages((prev) => [
         ...prev,
         { from: "bot", text: `✅ Task created from: "${text}"` },
@@ -140,7 +141,7 @@ export default function ChatbotDemo({ createTaskFromBot }: ChatbotDemoProps) {
                 />
               </div>
             ))}
-            {/* 👇 Este div invisible hace el scroll automático */}
+            {/* 👇 div automatic scroll */}
             <div ref={messagesEndRef} />
             {!languageChosen && (
               <div className="flex justify-end gap-2 mt-2">

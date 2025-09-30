@@ -10,13 +10,11 @@ import { ThemeSwitch } from "./components/theme-switch";
 function App() {
   return (
     <div className="relative min-h-screen">
-     
-      {/* Fondo global fijo */}
-     
+      {/* Change Theme */}
       <div className="text-end pt-3 pe-3">
-        <ThemeSwitch/>
+        <ThemeSwitch/> 
       </div>
-      {/* Tus rutas */}
+      {/* Your routes */}
       <Routes>
         <Route element={<IndexPage />} path="/" />
         <Route element={<DocsPage />} path="/docs" />

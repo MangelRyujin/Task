@@ -173,32 +173,32 @@ export default function App() {
     setTasks(t);
   };
 
-  const createTaskFromBot = async (text: string, lang: string = "es-PE") => {
-  if (!selectedList) return "";
+  const createTaskFromBot = async (text: string, lang: string = "en-US") => {
+    if (!selectedList) return "";
 
-  try {
-    const res = await fetch("/api/chatbot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, lang }),
-    });
+    try {
+      const res = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, lang }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok || !data.task) {
-      throw new Error(data.error || "Error creando tarea");
+      if (!res.ok || !data.task) {
+        throw new Error(data.error || "Error creating task");
+      }
+
+      await createTask(selectedList, data.task);
+      const t = await fetchTasks(selectedList);
+      setTasks(t);
+
+      return data.task;
+    } catch (err) {
+      console.error("Error in createTaskFromBot:", err);
+      return "";
     }
-
-    await createTask(selectedList, data.task);
-    const t = await fetchTasks(selectedList);
-    setTasks(t);
-
-    return data.task;
-  } catch (err) {
-    console.error("Error en createTaskFromBot:", err);
-    return "";
-  }
-};
+  };
 
   return (
     <>
